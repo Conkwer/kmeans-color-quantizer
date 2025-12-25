@@ -4,7 +4,7 @@ High-quality image color reduction using K-means clustering algorithm. Produces 
 
 ![Example Comparison](example.png) | ![K-means Result](example_kmeans.png)
 :---:|:---:
-Original | After K-means (256 colors)
+Original (230K colors) | After K-means (256 colors)
 
 ## Features
 
