@@ -1,93 +1,123 @@
-# K-means Image Color Quantizer
+# K-means Color Quantizer
 
-Convert 24-bit true color images to high-quality 8-bit indexed color (256 colors or less) using K-means clustering algorithm. Produces superior results compared to standard palette reduction methods by intelligently selecting optimal colors for each specific image.
+High-quality image color reduction using K-means clustering algorithm. Produces superior results compared to standard palette reduction methods.
 
-## Example
-
-| Original (24-bit) | K-means Quantized (8-bit, 256 colors) |
-|-------------------|---------------------------------------|
-| ![Original](example.png) | ![Quantized](example_kmeans.png) |
-
-*K-means intelligently selects the optimal 256-color palette for each image*
+![Example Comparison](example.png) | ![K-means Result](example_kmeans.png)
+:---:|:---:
+Original | After K-means (256 colors)
 
 ## Features
 
-- **Smart color selection** - K-means algorithm analyzes your image and selects the best palette
-- **Memory efficient** - Batched processing handles large images without excessive RAM usage
-- **Optional dithering** - Floyd-Steinberg error diffusion for smoother gradients
-- **Multiple formats** - Supports PNG and BMP output
-- **Palette export** - Save palettes as Adobe Color Table (.ACT) files
-- **Configurable** - Adjust color count, batch size, and iterations
+- **Smart palette generation** using K-means clustering for optimal color selection
+- **Memory-efficient** batched processing for large images
+- **Optional Floyd-Steinberg dithering** for smoother gradients
+- **Transparency support** with multiple modes:
+  - Replace transparency with custom color (magenta/pink/green/etc.) at palette index 255
+  - Export alpha channel as separate grayscale mask
+  - Perfect for retro game sprites (BennuGD, Streets of Rage Remake, Genesis/Mega Drive)
+- **Flexible output**: PNG or BMP format
+- **Palette export** to Adobe Color Table (.ACT) format
+- **Configurable color count** (2-256 colors)
 
-## Requirements
+## Installation
+
+### Requirements
+
+- Python 3.6 or newer
+- NumPy
+- Pillow (PIL)
+
+### Install dependencies
 
 ```bash
 pip install numpy pillow
 ```
 
-- Python 3.6+
-- NumPy
-- Pillow (PIL)
-
-## Installation
-
-1. Download `kmeans_8bit.py`
-2. Install dependencies: `pip install numpy pillow`
-3. Run from command line
-
-No installation required - it's a standalone script.
-
 ## Usage
 
-### Basic Usage
+### Basic Examples
 
-Convert image to 256-color indexed PNG:
+**Convert to 256 colors:**
 ```bash
-python kmeans_8bit.py photo.png
+python kmeans_8bit.py input.png
 ```
 
-Output: `photo_8bit.png`
-
-### Common Options
-
-**Specify output file:**
+**Convert to 16 colors:**
 ```bash
-python kmeans_8bit.py photo.png -o output.png
+python kmeans_8bit.py input.png -c 16
 ```
 
-**Use fewer colors:**
+**Apply dithering:**
 ```bash
-python kmeans_8bit.py photo.png -c 128
-```
-
-**Apply dithering for smoother gradients:**
-```bash
-python kmeans_8bit.py photo.png -d
+python kmeans_8bit.py input.png -d
 ```
 
 **Save as BMP:**
 ```bash
-python kmeans_8bit.py photo.png -f BMP -o output.bmp
+python kmeans_8bit.py input.png -f BMP -o output.bmp
 ```
 
-**Export palette as .ACT file:**
+### Transparency Handling
+
+**Replace transparency with magenta (for game sprites):**
 ```bash
-python kmeans_8bit.py photo.png --save-palette
+python kmeans_8bit.py sprite.png --trans-color magenta
 ```
 
-**Reduce memory usage (for very large images):**
+**Genesis/Mega Drive sprites (15 colors + transparency):**
 ```bash
-python kmeans_8bit.py huge_photo.png -b 2000
+python kmeans_8bit.py character.png -c 15 --trans-color magenta -f BMP
 ```
 
-### All Command-Line Options
+**Save alpha channel as separate mask:**
+```bash
+python kmeans_8bit.py sprite.png --save-alpha
+```
+This creates:
+- `sprite_8bit.png` - with magenta replacing transparency
+- `sprite_8bit_alpha.png` - grayscale alpha mask
+
+**Custom transparency color:**
+```bash
+python kmeans_8bit.py sprite.png --trans-color pink
+python kmeans_8bit.py sprite.png --trans-color 0,255,0    # Custom RGB green
+```
+
+Available presets: `magenta`, `pink`, `green`, `cyan`, `black`
+
+### Advanced Options
+
+**Export palette:**
+```bash
+python kmeans_8bit.py input.png --save-palette
+```
+Creates an Adobe Color Table (.ACT) file compatible with Photoshop and other tools.
+
+**Adjust transparency threshold:**
+```bash
+python kmeans_8bit.py sprite.png --trans-color magenta --alpha-threshold 64
+```
+Pixels with alpha < 64 are considered transparent (default: 128).
+
+**Memory optimization for large images:**
+```bash
+python kmeans_8bit.py large.png -b 2000
+```
+Uses smaller batches (lower RAM usage).
+
+**Control K-means iterations:**
+```bash
+python kmeans_8bit.py input.png -i 50
+```
+
+## Command-Line Options
 
 ```
 positional arguments:
   input                 Input PNG/BMP/JPG image path
 
 options:
-  -h, --help            Show help message
+  -h, --help            Show this help message and exit
   -o OUTPUT, --output OUTPUT
                         Output image path (auto-generated if omitted)
   -c COLORS, --colors COLORS
@@ -96,194 +126,94 @@ options:
   -f {PNG,BMP}, --format {PNG,BMP}
                         Output format (default: PNG)
   -b BATCH_SIZE, --batch-size BATCH_SIZE
-                        Pixels per batch - lower uses less RAM (default: 5000)
+                        Pixels per batch (default: 5000)
+  --save-alpha          Save alpha mask file (auto-enables --trans-color magenta)
+  --trans-color COLOR   Replace transparency with color at index 255
+                        (magenta/pink/green/cyan/black or R,G,B)
+  --alpha-threshold N   Alpha threshold for transparency (0-255, default: 128)
   --save-palette        Save palette as .ACT file
   -i ITERATIONS, --iterations ITERATIONS
                         K-means iterations (default: 30)
 ```
 
-## Examples
+## Use Cases
 
-### Example 1: Basic Conversion
+### Retro Game Development
+
+**BennuGD / Streets of Rage Remake sprites:**
 ```bash
-python kmeans_8bit.py landscape.png
+python kmeans_8bit.py character.png --trans-color magenta -f BMP
 ```
-Converts `landscape.png` to `landscape_8bit.png` with 256 colors.
 
-### Example 2: High-Quality Web Graphics
+**Sega Genesis/Mega Drive sprites (15 colors + transparency):**
 ```bash
-python kmeans_8bit.py screenshot.png -c 64 -d
+python kmeans_8bit.py sprite.png -c 15 --trans-color magenta -f BMP
 ```
-Creates a 64-color version with dithering - great for reducing file size while maintaining quality.
 
-### Example 3: Retro Game Assets
+**Export with alpha mask for editing:**
 ```bash
-python kmeans_8bit.py sprite.png -c 16 -f BMP -o sprite_indexed.bmp --save-palette
+python kmeans_8bit.py sprite.png -c 15 --save-alpha -f BMP
 ```
-Creates a 16-color BMP and exports the palette for use in game development tools.
+Creates both the sprite BMP and a separate alpha mask BMP.
 
-### Example 4: Large Images on Low-Memory Systems
+### Photo Conversion
+
+**High-quality 256-color image:**
 ```bash
-python kmeans_8bit.py huge_photo.jpg -b 2000 -i 20
+python kmeans_8bit.py photo.jpg -d
 ```
-Processes large images with smaller batches and fewer iterations to reduce memory usage.
 
-### Example 5: Batch Processing
+**Poster-style with fewer colors:**
 ```bash
-# Linux/Mac
-for file in *.png; do python kmeans_8bit.py "$file" -d; done
+python kmeans_8bit.py photo.jpg -c 32 -d
+```
 
-# Windows (PowerShell)
-Get-ChildItem *.png | ForEach-Object { python kmeans_8bit.py $_.Name -d }
+**Export palette for reuse:**
+```bash
+python kmeans_8bit.py photo.jpg --save-palette
 ```
 
 ## How It Works
 
-### K-means Clustering
-
-The script uses K-means clustering to find the optimal color palette:
-
-1. **Initialization**: Randomly selects initial palette colors from the image
-2. **Assignment**: Each pixel is assigned to its nearest palette color
-3. **Update**: Palette colors are recalculated as the average of assigned pixels
-4. **Iteration**: Steps 2-3 repeat until convergence (colors stop changing significantly)
-5. **Quantization**: Final image uses only the optimized palette colors
-
-This approach is superior to fixed palettes or simple color reduction because it adapts to each image's unique color distribution.
-
-### Floyd-Steinberg Dithering
-
-When the `-d` flag is used, the script applies error diffusion dithering:
-
-- Distributes color quantization errors to neighboring pixels
-- Creates the illusion of more colors through spatial patterns
-- Produces smoother gradients and better overall appearance
-- Especially effective when using fewer colors (< 128)
-
-### Memory Optimization
-
-The script processes pixels in batches to avoid loading massive distance matrices into RAM:
-
-- Default batch size: 5,000 pixels (~75 KB per batch)
-- Adjustable with `-b` flag for different memory constraints
-- Can handle multi-megapixel images on modest hardware
-
-## Output Formats
-
-### PNG (Default)
-- Lossless compression
-- Smaller file sizes
-- Widely supported
-- Recommended for most uses
-
-### BMP
-- Uncompressed
-- Larger file sizes
-- Maximum compatibility
-- Useful for legacy applications or game development
-
-### ACT Palette Files
-- Adobe Color Table format
-- 768 bytes (256 RGB triplets)
-- Import into Photoshop, GIMP, etc.
-- Use with `--save-palette` flag
-
-## Performance Tips
-
-### For Faster Processing
-- Use fewer iterations: `-i 15`
-- Skip dithering (omit `-d`)
-- Use fewer colors: `-c 128`
-
-### For Better Quality
-- Use more iterations: `-i 50`
-- Enable dithering: `-d`
-- Use full 256 colors (default)
-
-### For Large Images
-- Reduce batch size: `-b 2000`
-- Reduce iterations: `-i 20`
-- Consider resizing before processing
-
-## Quality Comparison
-
-| Method | Quality | Speed | Use Case |
-|--------|---------|-------|----------|
-| **K-means (this script)** | Excellent | Medium | Best overall quality |
-| **K-means + dithering** | Excellent+ | Slow | Smooth gradients, photorealistic images |
-| **Photoshop "Perceptual"** | Good | Fast | General purpose |
-| **Photoshop "Diffusion"** | Fair | Fast | Fixed palette, not adaptive |
-| **Median Cut** | Good | Fast | Quick reduction, less optimal palette |
-
-K-means produces better results because it optimizes the palette specifically for your image rather than using predetermined colors.
-
-## Troubleshooting
-
-### "Unable to allocate memory" error
-**Solution**: Reduce batch size
-```bash
-python kmeans_8bit.py photo.png -b 1000
-```
-
-### Processing too slow
-**Solution**: Reduce iterations
-```bash
-python kmeans_8bit.py photo.png -i 15
-```
-
-### Image looks posterized
-**Solution**: Enable dithering
-```bash
-python kmeans_8bit.py photo.png -d
-```
-
-### Colors look wrong
-**Solution**: Try more iterations
-```bash
-python kmeans_8bit.py photo.png -i 50
-```
-
-### Output file too large
-**Solution**: Use PNG instead of BMP, or reduce colors
-```bash
-python kmeans_8bit.py photo.png -c 128 -f PNG
-```
+1. **Load image** and separate alpha channel if present
+2. **K-means clustering** analyzes pixel colors to find optimal palette
+   - When using transparency replacement, transparent pixels are excluded from analysis
+   - This ensures the palette is optimized for visible colors only
+3. **Map pixels** to nearest palette colors
+4. **Optional dithering** for smoother color transitions
+5. **Save output** as indexed color image (PNG/BMP)
+6. **Optional alpha export** as separate grayscale mask
 
 ## Technical Details
 
-### Algorithm
-- **Clustering**: K-means with random initialization
-- **Distance metric**: Euclidean distance in RGB color space
-- **Convergence**: Stops when max centroid shift < 0.5 or max iterations reached
-- **Dithering**: Floyd-Steinberg error diffusion (7/16, 3/16, 5/16, 1/16 weights)
+- **Algorithm**: Mini-batch K-means clustering
+- **Color space**: RGB
+- **Palette size**: 256 colors maximum (8-bit indexed)
+- **Dithering**: Floyd-Steinberg error diffusion
+- **Transparency**: Stored at palette index 255 when using `--trans-color`
+- **Memory usage**: Configurable via batch size parameter
 
-### Memory Usage
-- **Formula**: `batch_size × n_colors × 3 × 4 bytes` for distance matrix
-- **Default**: 5,000 × 256 × 3 × 4 = ~15 MB per batch
-- **Batch size 2000**: ~6 MB per batch
-- **Batch size 1000**: ~3 MB per batch
+## Comparison with Other Methods
 
-### Limitations
-- Does not preserve transparency (alpha channel is discarded)
-- RGB color space only (no LAB or other color spaces)
-- Single-threaded (no GPU acceleration)
+| Method | Quality | Speed | Notes |
+|--------|---------|-------|-------|
+| K-means (this tool) | ★★★★★ | ★★★☆☆ | Best quality, optimized per image |
+| Median Cut | ★★★☆☆ | ★★★★☆ | Fast, decent quality |
+| Octree | ★★★☆☆ | ★★★★★ | Very fast, good for photos |
+| Fixed Palette | ★★☆☆☆ | ★★★★★ | Fast but limited |
+
+K-means produces **superior quality** because it analyzes the actual color distribution in your image to generate an optimal palette, rather than using generic algorithms.
+
+## Known Limitations
+
+- RGB color space only (no CMYK support)
+- Single-threaded processing
+- K-means convergence can vary with random initialization
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - See LICENSE file for details
 
-## Acknowledgments
+## Credits
 
-Inspired by the K-means vector quantization approach in the [PyPVR](https://github.com/VincentNLOBJ/PyPVR) tool for PowerVR texture compression.
-
-## See Also
-
-- [PyPVR](https://github.com/VincentNLOBJ/PyPVR) - Original inspiration for K-means palette generation
-- [Pillow Documentation](https://pillow.readthedocs.io/) - Python Imaging Library
-- [K-means Clustering](https://en.wikipedia.org/wiki/K-means_clustering) - Algorithm overview
-- [Floyd-Steinberg Dithering](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering) - Dithering technique
-
----
-
-**Version**: 1.0  
-**Last Updated**: December 2025
+Developed for high-quality palette reduction with support for retro game development workflows.
