@@ -14,7 +14,7 @@ Original | After K-means (256 colors)
 - **Transparency support** with multiple modes:
   - Replace transparency with custom color (magenta/pink/green/etc.) at palette index 255
   - Export alpha channel as separate grayscale mask
-  - Perfect for retro game sprites (BennuGD, Streets of Rage Remake, Genesis/Mega Drive)
+  - Perfect for retro game sprites (BennuGD, SoRR, Genesis)
 - **Flexible output**: PNG or BMP format
 - **Palette export** to Adobe Color Table (.ACT) format
 - **Configurable color count** (2-256 colors)
@@ -140,7 +140,7 @@ options:
 
 ### Retro Game Development
 
-**BennuGD / Streets of Rage Remake sprites:**
+**BennuGD / SoRR sprites:**
 ```bash
 python kmeans_8bit.py character.png --trans-color magenta -f BMP
 ```
